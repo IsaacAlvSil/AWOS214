@@ -1,8 +1,10 @@
 #Importaciones
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 import asyncio
 from typing import Optional
 from pydantic import BaseModel,Field
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 
 #instancia del servidor 
 app = FastAPI(
@@ -22,13 +24,22 @@ usuarios=[
 #modelo de validacion pydantic
 class usuario_create(BaseModel):
     id: int = Field(...,gt=0, description="Identificador de usuario")
-    nombre: str = Field(..., min_length=3, max=50, example="Isaac")
+    nombre: str = Field(..., min_length=3, max_length=50, examples=["Isaac"])
     edad: int = Field(..., ge=1, le=123, description="Edad valida entre 1 - 123")
 
 
+#seguridad
+security = HTTPBasic()
+def verificar_Peticion(credenciales:HTTPBasicCredentials=Depends(security)):
+    userAuth = secrets.compare_digest(credenciales.username, "isaac")
+    passAuth = secrets.compare_digest(credenciales.password, "123")
 
-
-
+    if not(userAuth and passAuth):
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "credenciales no autorizadas"
+        )
+    return credenciales.username
 
 
 #endpoints
@@ -70,12 +81,13 @@ async def leer_usuarios():
 @app.post("/v1/usuarios/",tags=["CRUD HTTP"],status_code=status.HTTP_201_CREATED)
 async def crear_usuario(usuario:usuario_create):
     for usr in usuarios:
-        if usr ["id"] == usuario.id:
+        if usr["id"] == usuario.id:
             raise HTTPException(
                 status_code=400,
                 detail="El id ya existe"
             )
-    usuarios.append(usuario)
+    usuarios.append(usuario.model_dump())
+
     return{
         "mensaje":"Usuario agregado",
         "Usuario":usuario
@@ -97,13 +109,12 @@ async def actualizar_usuario(id_buscado: int, datos_nuevos: dict):
     )  
 
 @app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'], status_code=status.HTTP_200_OK)
-async def eliminar_usuario(id:int):
+async def eliminar_usuario(id:int, userAuth: str = Depends(verificar_Peticion)):
     for usuario in usuarios:
         if usuario["id"] == id:
             usuarios.remove(usuario)
             return{
-                "mensaje": "Usuario eliminado",
-                "usuario": usuario
+                "message": f"usuario eliminado correctamente por: {userAuth}" 
             }
     raise HTTPException(
         status_code=400, 
