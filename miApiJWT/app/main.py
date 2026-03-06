@@ -112,7 +112,7 @@ async def leer_usuarios():
     }
 
 @app.post("/v1/usuarios/",tags=["CRUD HTTP"],status_code=status.HTTP_201_CREATED)
-async def crear_usuario(usuario:usuario_create):
+async def crear_usuario(usuario:usuario_create, current_user: str = Depends(get_current_user)):
     for usr in usuarios:
         if usr["id"] == usuario.id:
             raise HTTPException(
@@ -122,17 +122,17 @@ async def crear_usuario(usuario:usuario_create):
     usuarios.append(usuario.model_dump())
 
     return{
-        "mensaje":"Usuario agregado",
+        "mensaje":f"Usuario agregado por: {current_user}",
         "Usuario":usuario
     }
 
 @app.put("/v1/usuarios/{id_buscado}", tags=["CRUD HTTP"])
-async def actualizar_usuario(id_buscado: int, datos_nuevos: dict):
+async def actualizar_usuario(id_buscado: int, datos_nuevos: dict, current_user: str =  Depends(get_current_user)):
     for usr in usuarios:
         if usr["id"] == id_buscado:
             usr.update(datos_nuevos)
             return {
-                "mensaje": "Usuario actualizado",
+                "mensaje": f"Usuario actualizado correctamente por : {current_user}",
                 "usuario": usr
             }
         
