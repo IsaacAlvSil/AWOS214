@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    container_name: ApiJWT
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app/app
+    environment:
+      # Añade tu clave secreta
+      - SECRET_KEY=Isaac$ilva
+      - ALGORITHM=HS256
