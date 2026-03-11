@@ -1,7 +1,7 @@
 #importamos la imagen base
 FROM python:3.12-slim
 
-#Creamos caroeta de trabajo del contenedor en el contenedor
+#Creamos carpeta de trabajo del contenedor en el contenedor
 WORKDIR /app
 
 #Copiar requerimentos del proyecto
