@@ -48,7 +48,7 @@ def create_access_token(data: dict):
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenciales no válidas o token expirado",
+        detail="Credenciales no válidas o token expirado",  
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -94,7 +94,7 @@ async def consultaUno(id:int):
     return {"Se encontro usuario" : id}
 
 @app.get("/v1/parametroOp/", tags=["Parametro opcional"])
-async def consultaTodos(id:Optional[int]=None):
+async def consultaTodos(id:Optional[int]=None, current_user: str = Depends(get_current_user)):
     if id is not None:
         for usuario in usuarios:
             if usuario["id"] == id:
@@ -104,7 +104,7 @@ async def consultaTodos(id:Optional[int]=None):
         return{"mensaje:":"No se proporciono id"}
 
 @app.get("/v1/usuarios/", tags=["CRUD HTTP"])
-async def leer_usuarios():
+async def leer_usuarios(current_user: str = Depends(get_current_user)):
     return{
         "status":"200",
         "total": len(usuarios),
